@@ -3,6 +3,44 @@
     
 #>
 
+function Use-RunAs 
+{    
+    
+    param([Switch]$Check) 
+     
+    $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()` 
+        ).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator") 
+         
+    if ($Check) { return $IsAdmin }     
+ 
+    if ($MyInvocation.ScriptName -ne "") 
+    {  
+        if (-not $IsAdmin)  
+        {  
+            try 
+            {  
+                $arg = "-file `"$($MyInvocation.ScriptName)`"" 
+                Start-Process "$psHome\powershell.exe" -Verb Runas -ArgumentList $arg -ErrorAction 'stop'  
+            } 
+            catch 
+            { 
+                Write-Warning "Erreur - Impossible de redemarrer le script avec 'runas'"  
+                break               
+            } 
+            exit # Termine la session powershell
+        }  
+    }  
+    else  
+    {  
+        Write-Warning "Erreur - Le script doit être sauve en .ps1 avant"  
+        break  
+    }  
+} 
+ 
+ 
+Use-RunAs
+
+Set-ExecutionPolicy Unrestricted
 
 # Repertoire Script
 
